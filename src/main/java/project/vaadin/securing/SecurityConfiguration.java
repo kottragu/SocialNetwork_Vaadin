@@ -27,13 +27,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                     .authorizeRequests()
                     .requestMatchers(SecurityUtils::isFrameworkInternalRequest).permitAll()
-                    .antMatchers("/registration", "/recovery_password").permitAll()
+                .and()
+                    .authorizeRequests()
+                    .antMatchers("/registration", "/password-recovery").permitAll()
                     .anyRequest().authenticated()
                 .and()
                     .formLogin()
                     .loginPage(LOGIN_URL).permitAll()
                     .loginProcessingUrl(LOGIN_PROCESSING_URL)
                     .failureUrl(LOGIN_FAILURE_URL)
+                    .defaultSuccessUrl("/main")
                 .and()
                     .logout().logoutSuccessUrl(LOGOUT_SUCCESS_URL);
     }
@@ -42,11 +45,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     public UserDetailsService userDetailsService() {
         UserDetails user =
-                User.withUsername("user")
-                        .password("{noop}password")
+                User.withUsername("u")
+                        .password("p")
                         .roles("USER")
                         .build();
-
         return new InMemoryUserDetailsManager(user);
     }
 
