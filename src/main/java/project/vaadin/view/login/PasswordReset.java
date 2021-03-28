@@ -4,6 +4,7 @@ import com.vaadin.flow.component.login.AbstractLogin;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import project.vaadin.entity.User;
@@ -11,10 +12,9 @@ import project.vaadin.repo.UserRepo;
 
 @Route("password-recovery")
 public class PasswordReset extends VerticalLayout {
+    @Autowired
     UserRepo userRepo;
-
     private final LoginForm reset;
-
 
     public PasswordReset() {
         setSizeFull();
@@ -32,8 +32,8 @@ public class PasswordReset extends VerticalLayout {
         User userFromDB;
         userFromDB = userRepo.findByUsername(loginEvent.getUsername());
         if (userFromDB != null) {
-            //userFromDB.setPassword(loginEvent.getPassword());
-            //userRepo.updatePasswordUser(loginEvent.getPassword(), userFromDB.getId());
+            userFromDB.setPassword(loginEvent.getPassword());
+            userRepo.updatePassword(userFromDB.getId(), userFromDB.getUsername(), userFromDB.getPassword());
         } else
             reset.setError(true);
     }
