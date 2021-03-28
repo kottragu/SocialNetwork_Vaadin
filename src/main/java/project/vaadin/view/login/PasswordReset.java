@@ -1,13 +1,20 @@
 package project.vaadin.view.login;
 
+import com.vaadin.flow.component.login.AbstractLogin;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import org.springframework.beans.factory.annotation.Autowired;
+import project.vaadin.entity.User;
+import project.vaadin.repo.UserRepo;
 
 @Route("password-recovery")
 public class PasswordReset extends VerticalLayout {
-    private LoginForm reset;
+    UserRepo userRepo;
+
+    private final LoginForm reset;
+
 
     public PasswordReset() {
         setSizeFull();
@@ -16,10 +23,20 @@ public class PasswordReset extends VerticalLayout {
         reset = new LoginForm();
         reset.setI18n(getLoginI18n());
         reset.setAction("reset");
+        reset.addLoginListener(this::resetPassword);
         reset.addForgotPasswordListener(clicked -> reset.getUI().ifPresent(ui -> ui.navigate("login")));
         add(reset);
     }
 
+    private void resetPassword(AbstractLogin.LoginEvent loginEvent) {
+        User userFromDB;
+        userFromDB = userRepo.findByUsername(loginEvent.getUsername());
+        if (userFromDB != null) {
+            //userFromDB.setPassword(loginEvent.getPassword());
+            //userRepo.updatePasswordUser(loginEvent.getPassword(), userFromDB.getId());
+        } else
+            reset.setError(true);
+    }
 
 
     private LoginI18n getLoginI18n() {
@@ -31,6 +48,9 @@ public class PasswordReset extends VerticalLayout {
         loginI18n.getForm().setUsername("Username");
         loginI18n.getForm().setTitle("Are you really want to reset password?");
         loginI18n.getForm().setSubmit("Reset");
+        LoginI18n.ErrorMessage errorMessage = new LoginI18n.ErrorMessage();
+        errorMessage.setMessage("User doesn't exist");
+        loginI18n.setErrorMessage(errorMessage);
         return loginI18n;
     }
 }

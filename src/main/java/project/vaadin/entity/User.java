@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -18,7 +17,7 @@ import javax.persistence.Table;
 public class User {
     @Id
     @GeneratedValue
-    private Long Id;
+    private Long id;
     @NonNull
     private String username;
     @NonNull
