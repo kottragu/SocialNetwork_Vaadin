@@ -12,9 +12,10 @@ import project.vaadin.repo.UserRepo;
 
 @Route("password-recovery")
 public class PasswordReset extends VerticalLayout {
+    private final LoginForm reset;
+
     @Autowired
     UserRepo userRepo;
-    private final LoginForm reset;
 
     public PasswordReset() {
         setSizeFull();

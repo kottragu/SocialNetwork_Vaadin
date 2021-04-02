@@ -13,9 +13,11 @@ import project.vaadin.repo.UserRepo;
 @Route("registration")
 public class Registration extends VerticalLayout {
     private LoginForm registration;
+    private User user;
+
     @Autowired
     private UserRepo userRepo;
-    private User user;
+
 
     public Registration() {
         setSizeFull();
