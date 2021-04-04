@@ -1,27 +1,30 @@
 package project.vaadin.entity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import lombok.*;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
-@Table(schema = "vaadin_data")
+@Table(name = "usr", schema = "vaadin_new_project")
+
 public class User {
     @Id
     @GeneratedValue
+    @Column(name = "usr_id")
     private Long id;
+
+    /*@OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
+    private List<Message> messages;*/
     @NonNull
     private String username;
     @NonNull
     private String password;
+
     private Role role;
-    private boolean active;
+    private Boolean active;
 }
