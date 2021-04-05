@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Table(name = "usr", schema = "vaadin_new_project")
-
+@EqualsAndHashCode
 public class User {
     @Id
     @GeneratedValue

@@ -1,14 +1,21 @@
 package project.vaadin.view;
 
+import com.vaadin.componentfactory.Chat;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Header;
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.polymertemplate.PolymerTemplate;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.templatemodel.TemplateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,23 +30,33 @@ import java.util.Date;
 import java.util.List;
 
 @Route()
-public class MainView extends AppLayout {
+public class MainView extends VerticalLayout {
     private UserRepo userRepo;
     private MessageRepo messageRepo;
     private List<Message> messages;
     private User principal;
     private User user;
+    private HorizontalLayout header = new HorizontalLayout();
+    private VerticalLayout leftColumn;
+    private VerticalLayout centerColumn;
+    private VerticalLayout rightColumn;
 
     @Autowired
     public MainView (UserRepo uRepo, MessageRepo mRepo) {
         userRepo = uRepo;
         messageRepo = mRepo;
-
         setData();
         createHeader();
         createLeftColumn();
         createCenterColumn();
         createRightColumn();
+
+        HorizontalLayout main = new HorizontalLayout();
+        main.add(leftColumn, centerColumn, rightColumn);
+        main.setSizeFull();
+        header.setSizeFull();
+        add(header);
+        add(main);
     }
 
     private void setData() {
@@ -49,35 +66,37 @@ public class MainView extends AppLayout {
         messages = messageRepo.findByAuthorOrRecipient(principal, user);
     }
 
-    private void createLeftColumn(){
-        VerticalLayout leftColumn = new VerticalLayout();
+    private void createLeftColumn() {
+        leftColumn = new VerticalLayout();
         leftColumn.setWidth("20%");
-        addToDrawer(leftColumn);
+        Button button = new Button("VOT");
+        leftColumn.add(button);
     }
 
     private void createCenterColumn() {
-        VerticalLayout centerColumn = new VerticalLayout();
+        centerColumn = new VerticalLayout();
         centerColumn.setWidth("60%");
         Button send = new Button("send");
 
         TextField messageForm = new TextField();
         messageForm.setWidthFull();
+        for (Message message: messages) {
+            Label label = new Label(message.getMessage());
+            centerColumn.add(label);
+        }
 
         send.addClickListener(click -> {
             Message message = new Message(messageForm.getValue(), new Date(), principal, user);
-            System.out.println("From " + message.getAuthor().getUsername() + " to " + message.getRecipient().getUsername() + " value " + message.getMessage() + " with date " + message.getDate().toString());
             messageRepo.save(message);
         });
         centerColumn.add(messageForm, send);
-        addToDrawer(centerColumn);
     }
 
     private void createRightColumn() {
-        VerticalLayout rightColumn = new VerticalLayout();
+        rightColumn = new VerticalLayout();
         rightColumn.setWidth("20%");
-
-
-        addToDrawer(rightColumn);
+        Button button = new Button("right");;
+        rightColumn.add(button);
     }
 
 
@@ -85,12 +104,11 @@ public class MainView extends AppLayout {
 
 
     private void createHeader() {
-        H5 logo = new H5("Hello, " + user.getUsername());
+        H5 logo = new H5("Hello, " + principal.getUsername());
         logo.addClassName("logo");
 
         Button settings = new Button("settings");
         settings.addClickListener(click -> UI.getCurrent().navigate("settings"));
-
         Button logout = new Button("logout");
         logout.addClickListener(click -> {
             SecurityContextHolder.clearContext();
@@ -101,17 +119,19 @@ public class MainView extends AppLayout {
         Button toAdmin = new Button("admin");
         toAdmin.addClickListener(click -> UI.getCurrent().navigate("admin"));
         toAdmin.setVisible(false);
-        if (user.getRole().equals(Role.ADMIN)) {
+        if (principal.getRole().equals(Role.ADMIN)) {
             toAdmin.setVisible(true);
         }
 
-        HorizontalLayout header = new HorizontalLayout(settings, toAdmin, logo, logout);
+        HorizontalLayout header = new HorizontalLayout();
+        header.setDefaultVerticalComponentAlignment(Alignment.END);
+        header.add(settings, toAdmin, logo, logout);
+        logout.getStyle().set("margin-right", "auto");
         header.setSpacing(true);
         header.expand(logo);
-        header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.START);
         header.setWidth("100%");
         header.addClassName("header");
-        addToNavbar(header);
+        this.header.add(header);
     }
 
 }
