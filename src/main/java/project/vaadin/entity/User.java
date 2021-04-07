@@ -18,8 +18,6 @@ public class User {
     @Column(name = "usr_id")
     private Long id;
 
-    /*@OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
-    private List<Message> messages;*/
     @NonNull
     private String username;
     @NonNull

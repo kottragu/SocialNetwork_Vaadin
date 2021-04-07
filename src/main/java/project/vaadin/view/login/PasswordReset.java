@@ -4,7 +4,6 @@ import com.vaadin.flow.component.login.AbstractLogin;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import project.vaadin.entity.User;

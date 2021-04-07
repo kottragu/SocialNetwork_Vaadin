@@ -1,24 +1,19 @@
 package project.vaadin.view;
 
+import com.vaadin.componentfactory.Autocomplete;
 import com.vaadin.componentfactory.Chat;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H5;
-import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Label;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.polymertemplate.PolymerTemplate;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.templatemodel.TemplateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import project.vaadin.additionalElement.JokeGenerator;
 import project.vaadin.entity.Message;
 import project.vaadin.entity.Role;
 import project.vaadin.entity.User;
@@ -26,31 +21,36 @@ import project.vaadin.repo.MessageRepo;
 import project.vaadin.repo.UserRepo;
 import project.vaadin.view.login.LoginView;
 
-import java.util.Date;
-import java.util.List;
+import java.io.FileNotFoundException;
+import java.util.*;
 
 @Route()
 public class MainView extends VerticalLayout {
     private UserRepo userRepo;
     private MessageRepo messageRepo;
-    private List<Message> messages;
+    private List<Message> messagesFromRepo = new ArrayList<>();
+    private List<com.vaadin.componentfactory.model.Message> messages = new ArrayList<>();
+    private Chat chat;
     private User principal;
-    private User user;
-    private HorizontalLayout header = new HorizontalLayout();
+    private User recipient;
+    private HorizontalLayout header;
     private VerticalLayout leftColumn;
     private VerticalLayout centerColumn;
     private VerticalLayout rightColumn;
 
+
     @Autowired
-    public MainView (UserRepo uRepo, MessageRepo mRepo) {
+    public MainView (UserRepo uRepo, MessageRepo mRepo) throws FileNotFoundException {
         userRepo = uRepo;
         messageRepo = mRepo;
         setData();
+
         createHeader();
         createLeftColumn();
         createCenterColumn();
         createRightColumn();
 
+        this.setSizeFull();
         HorizontalLayout main = new HorizontalLayout();
         main.add(leftColumn, centerColumn, rightColumn);
         main.setSizeFull();
@@ -59,55 +59,85 @@ public class MainView extends VerticalLayout {
         add(main);
     }
 
-    private void setData() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        principal = userRepo.findByUsername(userDetails.getUsername());
-        user = userRepo.findByUsername("user");
-        messages = messageRepo.findByAuthorOrRecipient(principal, user);
-    }
-
     private void createLeftColumn() {
         leftColumn = new VerticalLayout();
         leftColumn.setWidth("20%");
-        Button button = new Button("VOT");
-        leftColumn.add(button);
+        leftColumn.setHeight("85%");
+        leftColumn.getStyle().set("overflow", "auto");
+
+        VerticalLayout scroll = new VerticalLayout();
+        scroll.setSizeFull();
+        scroll.setSpacing(false);
+        scroll.setJustifyContentMode(JustifyContentMode.START);
+        scroll.getStyle().set("display", "block");
+
+        Set<User> companions = new HashSet<>();
+        companions.addAll(messageRepo.customFindRecipient(principal));
+        companions.addAll(messageRepo.customFindAuthor(principal));
+        for (User s: companions) {
+            Button button = new Button(s.getUsername());
+            button.setWidth("100%");
+            button.addClickListener(click -> {
+                recipient = s;
+                setChat();
+            });
+            scroll.add(button);
+        }
+        leftColumn.add(new Component[]{scroll});
     }
+
+    private void setChat() { // устанавливает чат по 2 конкретным собеседникам
+        setMessages();
+        chat.setMessages(messages);
+        chat.setDebouncePeriod(200);
+        chat.setLazyLoadTriggerOffset(2500);
+        chat.scrollToBottom();
+        chat.addChatNewMessageListener(send -> {
+            Message message =  new Message(send.getMessage(), new Date(), principal, recipient);
+            messageRepo.save(message);
+            chat.addNewMessage(convertMessage(message));
+            chat.clearInput();
+        });
+    }
+
+
+    private void setData() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        principal = userRepo.findByUsername(userDetails.getUsername());
+    }
+
+    private void setMessages() {
+        messagesFromRepo.clear();
+        messagesFromRepo = messageRepo.findByPrincipalAndCompanion(principal, recipient);
+        converterToChatMessage();
+    }
+
+
 
     private void createCenterColumn() {
         centerColumn = new VerticalLayout();
         centerColumn.setWidth("60%");
-        Button send = new Button("send");
 
-        TextField messageForm = new TextField();
-        messageForm.setWidthFull();
-        for (Message message: messages) {
-            Label label = new Label(message.getMessage());
-            centerColumn.add(label);
-        }
-
-        send.addClickListener(click -> {
-            Message message = new Message(messageForm.getValue(), new Date(), principal, user);
-            messageRepo.save(message);
-        });
-        centerColumn.add(messageForm, send);
+        chat = new Chat();
+        chat.setLoading(false);
+        chat.getElement().getStyle().set("width", "100%");
+        centerColumn.add(chat);
     }
 
-    private void createRightColumn() {
+    private void createRightColumn() throws FileNotFoundException {
         rightColumn = new VerticalLayout();
         rightColumn.setWidth("20%");
-        Button button = new Button("right");;
-        rightColumn.add(button);
+        Label joke = new Label(JokeGenerator.getInstance().generateJoke());
+        rightColumn.add(joke);
     }
-
-
-
-
 
     private void createHeader() {
         H5 logo = new H5("Hello, " + principal.getUsername());
         logo.addClassName("logo");
 
+
         Button settings = new Button("settings");
+        settings.setClassName("settings-button");
         settings.addClickListener(click -> UI.getCurrent().navigate("settings"));
         Button logout = new Button("logout");
         logout.addClickListener(click -> {
@@ -123,15 +153,52 @@ public class MainView extends VerticalLayout {
             toAdmin.setVisible(true);
         }
 
-        HorizontalLayout header = new HorizontalLayout();
-        header.setDefaultVerticalComponentAlignment(Alignment.END);
-        header.add(settings, toAdmin, logo, logout);
+        Autocomplete autocomplete = new Autocomplete();
+        autocomplete.setPlaceholder("find user");
+
+        autocomplete.addChangeListener(click ->  {
+            String text = click.getValue();
+            List<User> userList = userRepo.findByPartOfUsername(text);
+            List<String> userNames = new ArrayList<>();
+            for (User user: userList) {
+                userNames.add(user.getUsername());
+            }
+            autocomplete.setOptions(userNames);
+        });
+
+        autocomplete.addAutocompleteValueAppliedListener(click -> {
+            recipient = userRepo.findByUsername(click.getValue());
+            /**/
+        });
+
+        header = new HorizontalLayout();
+        header.add(settings, toAdmin, autocomplete, logo, logout);
         logout.getStyle().set("margin-right", "auto");
         header.setSpacing(true);
         header.expand(logo);
         header.setWidth("100%");
         header.addClassName("header");
-        this.header.add(header);
+    }
+
+
+    private void converterToChatMessage() {
+        messages.clear();
+        for (Message message: messagesFromRepo) {
+            messages.add(convertMessage(message));
+        }
+    }
+
+    private com.vaadin.componentfactory.model.Message convertMessage(Message message) {
+        return  new com.vaadin.componentfactory.model.Message(
+                message.getMessage(),
+                message.getAuthor().getUsername(),
+                message.getAuthor().getUsername(),
+                isCurrentUser(message)
+        );
+    }
+
+    private boolean isCurrentUser(Message message) {
+        return message.getAuthor().getUsername().equals(principal.getUsername());
     }
 
 }

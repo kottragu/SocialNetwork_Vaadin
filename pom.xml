@@ -77,15 +77,20 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- vaadin ui component -->
+        <!-- vaadin ui components -->
         <dependency>
             <groupId>com.vaadin.componentfactory</groupId>
             <artifactId>chat</artifactId>
             <version>2.0.1</version>
         </dependency>
-
-
+        <dependency>
+            <groupId>com.vaadin.componentfactory</groupId>
+            <artifactId>autocomplete</artifactId>
+            <version>2.3.1</version>
+        </dependency>
     </dependencies>
+
+
     <dependencyManagement>
         <dependencies>
             <dependency>
