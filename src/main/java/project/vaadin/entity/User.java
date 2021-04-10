@@ -3,15 +3,13 @@ package project.vaadin.entity;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Table(name = "usr", schema = "vaadin_new_project")
-@EqualsAndHashCode
 public class User {
     @Id
     @GeneratedValue
@@ -25,4 +23,9 @@ public class User {
 
     private Role role;
     private Boolean active;
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }
