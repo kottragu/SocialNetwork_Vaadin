@@ -16,14 +16,7 @@ public class SecurityUtils {
     static boolean isFrameworkInternalRequest(HttpServletRequest request) {
         String paramValue = request.getParameter(ApplicationConstants.REQUEST_TYPE_PARAMETER);
         return paramValue != null
-                && Stream.of(ServletHelper.RequestType.values()) //понять куда девать ServletHelper, тк деприкейтед
+                && Stream.of(ServletHelper.RequestType.values())
                          .anyMatch(r -> r.getIdentifier().equals(paramValue));
-    }
-
-    static boolean isUserLoggedIn() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null
-                && !(authentication instanceof AnonymousAuthenticationToken)
-                && authentication.isAuthenticated();
     }
 }

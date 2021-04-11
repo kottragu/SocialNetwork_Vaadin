@@ -38,7 +38,6 @@ public class Registration extends VerticalLayout {
             user.setUsername(e.getUsername());
             user.setPassword(e.getPassword());
             user.setRole(Role.USER);
-            user.setActive(true);
             userRepo.save(user);
             Notification notification = new Notification();
             notification.setPosition(Notification.Position.TOP_CENTER);

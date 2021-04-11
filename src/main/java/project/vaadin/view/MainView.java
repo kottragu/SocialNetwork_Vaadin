@@ -9,7 +9,6 @@ import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -71,9 +70,12 @@ public class MainView extends VerticalLayout {
         scroll.setJustifyContentMode(JustifyContentMode.START);
         scroll.getStyle().set("display", "block");
 
-        Set<User> companions = new HashSet<>();
+        ArrayList<User> companions = new ArrayList<>();
         companions.addAll(messageRepo.customFindRecipient(principal));
         companions.addAll(messageRepo.customFindAuthor(principal));
+        ArrayList<User> result = checkRepeating(companions);
+        companions.clear();
+        companions.addAll(result);
         for (User s: companions) {
             Button button = new Button(s.getUsername());
             button.setWidth("100%");
@@ -86,6 +88,17 @@ public class MainView extends VerticalLayout {
         leftColumn.add(new Component[]{scroll});
     }
 
+    private ArrayList<User> checkRepeating(ArrayList<User> users) {
+        ArrayList<User> result = new ArrayList<>();
+        ArrayList<Long> ids = new ArrayList<>();
+        for (User u: users) {
+            if (!ids.contains(u.getId())) {
+                result.add(u);
+                ids.add(u.getId());
+            }
+        }
+        return result;
+    }
     private void setChat() { // устанавливает чат по 2 конкретным собеседникам
         centerColumn.remove(chat);
         chat = null;
