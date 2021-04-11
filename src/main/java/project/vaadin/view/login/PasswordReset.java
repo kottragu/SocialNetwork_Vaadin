@@ -1,8 +1,10 @@
 package project.vaadin.view.login;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.login.AbstractLogin;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.login.LoginI18n;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,6 @@ public class PasswordReset extends VerticalLayout {
         setJustifyContentMode(JustifyContentMode.CENTER);
         reset = new LoginForm();
         reset.setI18n(getLoginI18n());
-        reset.setAction("reset");
         reset.addLoginListener(this::resetPassword);
         reset.addForgotPasswordListener(clicked -> reset.getUI().ifPresent(ui -> ui.navigate("login")));
         add(reset);
@@ -34,6 +35,12 @@ public class PasswordReset extends VerticalLayout {
         if (userFromDB != null) {
             userFromDB.setPassword(loginEvent.getPassword());
             userRepo.updatePassword(userFromDB.getId(), userFromDB.getUsername(), userFromDB.getPassword());
+            Notification notification = new Notification();
+            notification.setPosition(Notification.Position.TOP_CENTER);
+            notification.setText("Password update successfully");
+            notification.setDuration(5000);
+            notification.open();
+            UI.getCurrent().navigate("login");
         } else
             reset.setError(true);
     }
