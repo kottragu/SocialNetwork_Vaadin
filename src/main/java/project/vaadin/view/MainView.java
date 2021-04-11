@@ -9,6 +9,7 @@ import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,17 +39,16 @@ public class MainView extends VerticalLayout {
     private VerticalLayout centerColumn;
     private VerticalLayout rightColumn;
 
-
     @Autowired
     public MainView (UserRepo uRepo, MessageRepo mRepo) throws FileNotFoundException {
         userRepo = uRepo;
         messageRepo = mRepo;
         setData();
-
         createHeader();
         createLeftColumn();
         createCenterColumn();
         createRightColumn();
+
 
         this.setSizeFull();
         HorizontalLayout main = new HorizontalLayout();
@@ -87,6 +87,11 @@ public class MainView extends VerticalLayout {
     }
 
     private void setChat() { // устанавливает чат по 2 конкретным собеседникам
+        centerColumn.remove(chat);
+        chat = null;
+        chat = new Chat();
+        chat.getElement().getStyle().set("width", "100%");
+        centerColumn.add(chat);
         setMessages();
         chat.setMessages(messages);
         chat.setDebouncePeriod(200);
@@ -117,7 +122,6 @@ public class MainView extends VerticalLayout {
     private void createCenterColumn() {
         centerColumn = new VerticalLayout();
         centerColumn.setWidth("60%");
-
         chat = new Chat();
         chat.setLoading(false);
         chat.getElement().getStyle().set("width", "100%");
@@ -168,7 +172,7 @@ public class MainView extends VerticalLayout {
 
         autocomplete.addAutocompleteValueAppliedListener(click -> {
             recipient = userRepo.findByUsername(click.getValue());
-            /**/
+            setChat();
         });
 
         header = new HorizontalLayout();
