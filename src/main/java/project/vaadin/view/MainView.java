@@ -2,7 +2,6 @@ package project.vaadin.view;
 
 import com.vaadin.componentfactory.Autocomplete;
 import com.vaadin.componentfactory.Chat;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H5;
@@ -22,7 +21,11 @@ import project.vaadin.repo.UserRepo;
 import project.vaadin.view.login.LoginView;
 
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
 
 @Route()
 public class MainView extends VerticalLayout {
@@ -30,6 +33,7 @@ public class MainView extends VerticalLayout {
     private MessageRepo messageRepo;
     private List<Message> messagesFromRepo = new ArrayList<>();
     private List<com.vaadin.componentfactory.model.Message> messages = new ArrayList<>();
+    private ArrayList<User> companions = new ArrayList<>();
     private Chat chat;
     private User principal;
     private User recipient;
@@ -42,15 +46,15 @@ public class MainView extends VerticalLayout {
     public MainView (UserRepo uRepo, MessageRepo mRepo) throws FileNotFoundException {
         userRepo = uRepo;
         messageRepo = mRepo;
+        setSizeFull();
         setData();
         createHeader();
         createLeftColumn();
         createCenterColumn();
         createRightColumn();
 
-
-        this.setSizeFull();
         HorizontalLayout main = new HorizontalLayout();
+        main.setSizeFull();
         main.add(leftColumn, centerColumn, rightColumn);
         main.setSizeFull();
         header.setSizeFull();
@@ -77,15 +81,19 @@ public class MainView extends VerticalLayout {
         companions.clear();
         companions.addAll(result);
         for (User s: companions) {
-            Button button = new Button(s.getUsername());
-            button.setWidth("100%");
-            button.addClickListener(click -> {
-                recipient = s;
-                setChat();
-            });
-            scroll.add(button);
+            Button button = createButtonRecipient(s);
+            leftColumn.add(button);
         }
-        leftColumn.add(new Component[]{scroll});
+    }
+
+    private Button createButtonRecipient(User s) {
+        Button button = new Button(s.getUsername());
+        button.setWidth("100%");
+        button.addClickListener(click -> {
+            recipient = s;
+            setChat();
+        });
+        return button;
     }
 
     private ArrayList<User> checkRepeating(ArrayList<User> users) {
@@ -115,6 +123,7 @@ public class MainView extends VerticalLayout {
             messageRepo.save(message);
             chat.addNewMessage(convertMessage(message));
             chat.clearInput();
+            chat.scrollToBottom();
         });
     }
 
@@ -127,10 +136,9 @@ public class MainView extends VerticalLayout {
     private void setMessages() {
         messagesFromRepo.clear();
         messagesFromRepo = messageRepo.findByPrincipalAndCompanion(principal, recipient);
+        Collections.sort(messagesFromRepo);
         converterToChatMessage();
     }
-
-
 
     private void createCenterColumn() {
         centerColumn = new VerticalLayout();
@@ -178,14 +186,19 @@ public class MainView extends VerticalLayout {
             List<User> userList = userRepo.findByPartOfUsername(text);
             List<String> userNames = new ArrayList<>();
             for (User user: userList) {
-                userNames.add(user.getUsername());
+                if (!user.getUsername().equals(principal.getUsername()))
+                    userNames.add(user.getUsername());
             }
             autocomplete.setOptions(userNames);
         });
 
         autocomplete.addAutocompleteValueAppliedListener(click -> {
             recipient = userRepo.findByUsername(click.getValue());
+            if (companions.stream().noneMatch(u -> u.getId().equals(recipient.getId()))) {
+                leftColumn.add(createButtonRecipient(recipient));
+            }
             setChat();
+            autocomplete.clear(); // сделать очистку после нажатия
         });
 
         header = new HorizontalLayout();
