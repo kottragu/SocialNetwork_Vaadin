@@ -7,12 +7,12 @@ import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.PWA;
 
 
 @Route("login")
-@PageTitle("Login by Vaadin")
+@PWA(name = "Social Network", shortName = "SN")
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     private final LoginForm login = new LoginForm();
 
@@ -25,8 +25,12 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         Button registration = new Button("Sign up");
         registration.addClickListener(clicked -> registration.getUI().ifPresent(ui -> ui.navigate("registration")));
 
-        //сделать H1 и H3 пониже при помощи css
-        add(new H1("Welcome"), new H3("again"), login, registration);
+        H1 welcome = new H1("Welcome");
+        welcome.getStyle().set("margin", "0");
+        H3 again = new H3("again");
+        again.getStyle().set("margin", "0");
+        setSpacing(false);
+        add(welcome, again, login, registration);
     }
 
 

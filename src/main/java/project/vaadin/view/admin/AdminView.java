@@ -1,5 +1,6 @@
 package project.vaadin.view.admin;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.editor.Editor;
@@ -83,7 +84,9 @@ public class AdminView extends VerticalLayout {
         editor.addSaveListener(e ->
             userRepo.updateUser(e.getItem().getId(), e.getItem().getUsername(), e.getItem().getPassword(), e.getItem().getRole()));
 
-        add(grid);
+        Button back = new Button("back");
+        back.addClickListener(event -> UI.getCurrent().navigate(""));
+        add(back, grid);
     }
 
 }
