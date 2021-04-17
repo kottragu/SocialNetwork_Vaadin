@@ -68,12 +68,6 @@ public class MainView extends VerticalLayout {
         leftColumn.setHeight("85%");
         leftColumn.getStyle().set("overflow", "auto");
 
-        VerticalLayout scroll = new VerticalLayout();
-        scroll.setSizeFull();
-        scroll.setSpacing(false);
-        scroll.setJustifyContentMode(JustifyContentMode.START);
-        scroll.getStyle().set("display", "block");
-
         ArrayList<User> companions = new ArrayList<>();
         companions.addAll(messageRepo.customFindRecipient(principal));
         companions.addAll(messageRepo.customFindAuthor(principal));
