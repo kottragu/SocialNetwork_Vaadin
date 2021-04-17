@@ -4,6 +4,7 @@ import com.vaadin.componentfactory.Autocomplete;
 import com.vaadin.componentfactory.Chat;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -101,6 +102,7 @@ public class MainView extends VerticalLayout {
         }
         return result;
     }
+
     private void setChat() { // устанавливает чат по 2 конкретным собеседникам
         centerColumn.remove(chat);
         chat = null;
@@ -108,6 +110,7 @@ public class MainView extends VerticalLayout {
         chat.getElement().getStyle().set("width", "100%");
         centerColumn.add(chat);
         setMessages();
+        chat.setLoadingIndicator(new Div());
         chat.setMessages(messages);
         chat.setDebouncePeriod(200);
         chat.setLazyLoadTriggerOffset(2500);
@@ -138,6 +141,7 @@ public class MainView extends VerticalLayout {
         centerColumn = new VerticalLayout();
         centerColumn.setWidth("60%");
         chat = new Chat();
+        chat.setLoadingIndicator(new Div());
         chat.setLoading(false);
         chat.getElement().getStyle().set("width", "100%");
         centerColumn.add(chat);
