@@ -20,7 +20,6 @@ import project.vaadin.entity.User;
 import project.vaadin.repo.MessageRepo;
 import project.vaadin.repo.UserRepo;
 import project.vaadin.view.login.LoginView;
-
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -156,7 +155,7 @@ public class MainView extends VerticalLayout {
 
     private void createHeader() {
         H5 logo = new H5("Hello, " + principal.getUsername());
-        logo.addClassName("logo");
+        logo.getElement().getStyle().set("margin", "15px 0px 9px 16px");
 
 
         Button settings = new Button("settings");
@@ -196,7 +195,7 @@ public class MainView extends VerticalLayout {
                 leftColumn.add(createButtonRecipient(recipient));
             }
             setChat();
-            autocomplete.clear(); // сделать очистку после нажатия
+            autocomplete.clear();
         });
 
         header = new HorizontalLayout();
