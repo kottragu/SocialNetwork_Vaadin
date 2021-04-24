@@ -7,21 +7,19 @@ import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import org.springframework.beans.factory.annotation.Autowired;
 import project.vaadin.entity.Role;
 import project.vaadin.entity.User;
-import project.vaadin.repo.UserRepo;
+import project.vaadin.service.ManageUserService;
 
 @Route("registration")
-public class Registration extends VerticalLayout {
-    private LoginForm registration;
+public class RegistrationView extends VerticalLayout {
+    private final LoginForm registration;
     private User user;
-
-    @Autowired
-    private UserRepo userRepo;
+    private final ManageUserService manageUserService;
 
 
-    public Registration() {
+    public RegistrationView(ManageUserService manageUserService) {
+        this.manageUserService = manageUserService;
         setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
@@ -33,12 +31,12 @@ public class Registration extends VerticalLayout {
     }
 
     private void save(AbstractLogin.LoginEvent e) {
-        if (userRepo.findByUsername(e.getUsername()) == null) {
+        if (manageUserService.getUserByUsername(e.getUsername()) == null) {
             user = new User();
             user.setUsername(e.getUsername());
             user.setPassword(e.getPassword());
             user.setRole(Role.USER);
-            userRepo.save(user);
+            manageUserService.saveUser(user);
             Notification notification = new Notification();
             notification.setPosition(Notification.Position.TOP_CENTER);
             notification.setText("Successfully sign up");

@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import project.vaadin.entity.Role;
 import project.vaadin.entity.User;
 import project.vaadin.repo.UserRepo;
+import project.vaadin.service.ManageUserService;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.WeakHashMap;
@@ -21,7 +23,7 @@ import java.util.WeakHashMap;
 
 @Route("admin")
 public class AdminView extends VerticalLayout {
-    private UserRepo userRepo;
+    private final ManageUserService manageUserService;
     private Grid<User> grid = new Grid<>(User.class);
     private TextField username = new TextField();
     private TextField password = new TextField();
@@ -29,10 +31,9 @@ public class AdminView extends VerticalLayout {
     private Editor<User> editor;
 
 
-    @Autowired
-    public AdminView(UserRepo repo) {
-        userRepo = repo;
-        grid.setItems(userRepo.findAll());
+    public AdminView(ManageUserService manageUserService) {
+        this.manageUserService = manageUserService;
+        grid.setItems(manageUserService.getAllUsers());
 
         Binder<User> binder = new Binder<>(User.class);
         editor = grid.getEditor();
@@ -81,9 +82,14 @@ public class AdminView extends VerticalLayout {
         Div buttons = new Div(save, cancel);
         editorColumn.setEditorComponent(buttons);
 
-        editor.addSaveListener(e ->
-            userRepo.updateUser(e.getItem().getId(), e.getItem().getUsername(), e.getItem().getPassword(), e.getItem().getRole()));
-
+        editor.addSaveListener(e -> {
+            User user = new User();
+            user.setId(e.getItem().getId());
+            user.setUsername(e.getItem().getUsername());
+            user.setPassword(e.getItem().getPassword());
+            user.setRole(e.getItem().getRole());
+            this.manageUserService.updateUser(user);
+        });
         Button back = new Button("back");
         back.addClickListener(event -> UI.getCurrent().navigate(""));
         add(back, grid);

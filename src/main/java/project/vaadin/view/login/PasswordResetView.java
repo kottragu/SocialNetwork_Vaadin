@@ -7,18 +7,17 @@ import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import org.springframework.beans.factory.annotation.Autowired;
 import project.vaadin.entity.User;
 import project.vaadin.repo.UserRepo;
+import project.vaadin.service.ManageUserService;
 
 @Route("password-recovery")
-public class PasswordReset extends VerticalLayout {
+public class PasswordResetView extends VerticalLayout {
     private final LoginForm reset;
+    private final ManageUserService manageUserService;
 
-    @Autowired
-    UserRepo userRepo;
-
-    public PasswordReset() {
+    public PasswordResetView(ManageUserService manageUserService) {
+        this.manageUserService = manageUserService;
         setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
@@ -30,11 +29,10 @@ public class PasswordReset extends VerticalLayout {
     }
 
     private void resetPassword(AbstractLogin.LoginEvent loginEvent) {
-        User userFromDB;
-        userFromDB = userRepo.findByUsername(loginEvent.getUsername());
+        User userFromDB = manageUserService.getUserByUsername(loginEvent.getUsername());
         if (userFromDB != null) {
             userFromDB.setPassword(loginEvent.getPassword());
-            userRepo.updatePassword(userFromDB.getId(), userFromDB.getUsername(), userFromDB.getPassword());
+            manageUserService.updateUser(userFromDB);
             Notification notification = new Notification();
             notification.setPosition(Notification.Position.TOP_CENTER);
             notification.setText("Password update successfully");

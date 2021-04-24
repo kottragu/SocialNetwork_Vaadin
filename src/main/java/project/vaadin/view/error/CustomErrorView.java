@@ -10,7 +10,7 @@ import com.vaadin.flow.router.NotFoundException;
 import javax.servlet.http.HttpServletResponse;
 
 @Tag(Tag.DIV)
-public class CustomError extends Component implements HasErrorParameter<NotFoundException> {
+public class CustomErrorView extends Component implements HasErrorParameter<NotFoundException> {
 
     @Override
     public int setErrorParameter(BeforeEnterEvent beforeEnterEvent, ErrorParameter<NotFoundException> errorParameter) {

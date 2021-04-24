@@ -7,22 +7,20 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import project.vaadin.entity.User;
-import project.vaadin.repo.UserRepo;
+import project.vaadin.service.ManageUserService;
 
 
 @Route("settings")
-public class Settings extends VerticalLayout {
-
-    @Autowired
-    private UserRepo userRepo;
-
+public class SettingsView extends VerticalLayout {
     private User principal;
+    private final ManageUserService manageUserService;
 
-    public Settings() {
+    public SettingsView(ManageUserService manageUserService) {
+        this.manageUserService = manageUserService;
+        setData();
         setSizeFull();
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
         setHeader();
@@ -44,13 +42,14 @@ public class Settings extends VerticalLayout {
         changeUsername.setLabel("change username");
         Button applyChangeUsername = new Button("apply");
         applyChangeUsername.addClickListener(click -> {
-            if (userRepo.findByUsername(changeUsername.getValue()) != null ) {
+            if (manageUserService.getUserByUsername(changeUsername.getValue()) != null ) {
                 Notification notification = new Notification();
                 notification.setText("Username is already in use");
                 notification.setDuration(5000);
                 notification.open();
             } else {
-                userRepo.updateUser(principal.getId(), changeUsername.getValue(), principal.getPassword(), principal.getRole());
+                principal.setUsername(changeUsername.getValue());
+                manageUserService.updateUser(principal);
             }
         });
         usernameChanger.add(changeUsername, applyChangeUsername);
@@ -63,7 +62,8 @@ public class Settings extends VerticalLayout {
         TextField changePassword = new TextField("change password");
         Button button = new Button("apply");
         button.addClickListener(click -> {
-            userRepo.updateUser(principal.getId(), principal.getUsername(), changePassword.getValue(), principal.getRole());
+            principal.setPassword(changePassword.getValue());
+            manageUserService.updateUser(principal);
         });
         passwordChanger.setDefaultVerticalComponentAlignment(Alignment.END);
         passwordChanger.add(changePassword, button);
@@ -74,6 +74,6 @@ public class Settings extends VerticalLayout {
 
     public void setData() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        principal = userRepo.findByUsername(userDetails.getUsername());
+        principal = manageUserService.getUserByUsername(userDetails.getUsername());
     }
 }

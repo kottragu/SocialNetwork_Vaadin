@@ -19,6 +19,8 @@ import project.vaadin.entity.Role;
 import project.vaadin.entity.User;
 import project.vaadin.repo.MessageRepo;
 import project.vaadin.repo.UserRepo;
+import project.vaadin.service.ManageMessageService;
+import project.vaadin.service.ManageUserService;
 import project.vaadin.view.login.LoginView;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -29,11 +31,11 @@ import java.util.List;
 
 @Route()
 public class MainView extends VerticalLayout {
-    private UserRepo userRepo;
-    private MessageRepo messageRepo;
+    private final ManageUserService manageUserService;
+    private final ManageMessageService manageMessageService;
     private List<Message> messagesFromRepo = new ArrayList<>();
     private List<com.vaadin.componentfactory.model.Message> messages = new ArrayList<>();
-    private ArrayList<User> companions = new ArrayList<>();
+    private ArrayList<User> interlocutors = new ArrayList<>();
     private Chat chat;
     private User principal;
     private User recipient;
@@ -42,10 +44,9 @@ public class MainView extends VerticalLayout {
     private VerticalLayout centerColumn;
     private VerticalLayout rightColumn;
 
-    @Autowired
-    public MainView (UserRepo uRepo, MessageRepo mRepo) throws FileNotFoundException {
-        userRepo = uRepo;
-        messageRepo = mRepo;
+    public MainView(ManageUserService manageUserService, ManageMessageService manageMessageService) throws FileNotFoundException {
+        this.manageUserService = manageUserService;
+        this.manageMessageService = manageMessageService;
         setSizeFull();
         setData();
         createHeader();
@@ -68,13 +69,8 @@ public class MainView extends VerticalLayout {
         leftColumn.setHeight("85%");
         leftColumn.getStyle().set("overflow", "auto");
 
-        ArrayList<User> companions = new ArrayList<>();
-        companions.addAll(messageRepo.customFindRecipient(principal));
-        companions.addAll(messageRepo.customFindAuthor(principal));
-        ArrayList<User> result = checkRepeating(companions);
-        companions.clear();
-        companions.addAll(result);
-        for (User s: companions) {
+        interlocutors.addAll(manageMessageService.getInterlocutors(principal));
+        for (User s: interlocutors) {
             Button button = createButtonRecipient(s);
             leftColumn.add(button);
         }
@@ -90,18 +86,6 @@ public class MainView extends VerticalLayout {
         return button;
     }
 
-    private ArrayList<User> checkRepeating(ArrayList<User> users) {
-        ArrayList<User> result = new ArrayList<>();
-        ArrayList<Long> ids = new ArrayList<>();
-        for (User u: users) {
-            if (!ids.contains(u.getId())) {
-                result.add(u);
-                ids.add(u.getId());
-            }
-        }
-        return result;
-    }
-
     private void setChat() { // устанавливает чат по 2 конкретным собеседникам
         centerColumn.remove(chat);
         chat = null;
@@ -115,8 +99,8 @@ public class MainView extends VerticalLayout {
         chat.setLazyLoadTriggerOffset(2500);
         chat.scrollToBottom();
         chat.addChatNewMessageListener(send -> {
-            Message message =  new Message(send.getMessage(), new Date(), principal, recipient);
-            messageRepo.save(message);
+            Message message = new Message(send.getMessage(), new Date(), principal, recipient);
+            manageMessageService.save(message);
             chat.addNewMessage(convertMessage(message));
             chat.clearInput();
             chat.scrollToBottom();
@@ -126,12 +110,12 @@ public class MainView extends VerticalLayout {
 
     private void setData() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        principal = userRepo.findByUsername(userDetails.getUsername());
+        principal = manageUserService.getUserByUsername(userDetails.getUsername());
     }
 
     private void setMessages() {
         messagesFromRepo.clear();
-        messagesFromRepo = messageRepo.findByPrincipalAndCompanion(principal, recipient);
+        messagesFromRepo = manageMessageService.getMessagesByPrincipalAndInterlocutor(principal, recipient);
         Collections.sort(messagesFromRepo);
         converterToChatMessage();
     }
@@ -157,7 +141,6 @@ public class MainView extends VerticalLayout {
         H5 logo = new H5("Hello, " + principal.getUsername());
         logo.getElement().getStyle().set("margin", "15px 0px 9px 16px");
 
-
         Button settings = new Button("settings");
         settings.setClassName("settings-button");
         settings.addClickListener(click -> UI.getCurrent().navigate("settings"));
@@ -177,10 +160,8 @@ public class MainView extends VerticalLayout {
 
         Autocomplete autocomplete = new Autocomplete();
         autocomplete.setPlaceholder("find user");
-
         autocomplete.addChangeListener(click ->  {
-            String text = click.getValue();
-            List<User> userList = userRepo.findByPartOfUsername(text);
+            List<User> userList = manageUserService.getUsersByPartUsername(click.getValue());
             List<String> userNames = new ArrayList<>();
             for (User user: userList) {
                 if (!user.getUsername().equals(principal.getUsername()))
@@ -190,8 +171,8 @@ public class MainView extends VerticalLayout {
         });
 
         autocomplete.addAutocompleteValueAppliedListener(click -> {
-            recipient = userRepo.findByUsername(click.getValue());
-            if (companions.stream().noneMatch(u -> u.getId().equals(recipient.getId()))) {
+            recipient = manageUserService.getUserByUsername(click.getValue());
+            if (interlocutors.stream().noneMatch(u -> u.getId().equals(recipient.getId()))) {
                 leftColumn.add(createButtonRecipient(recipient));
             }
             setChat();

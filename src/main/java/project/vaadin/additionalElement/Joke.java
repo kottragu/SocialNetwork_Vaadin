@@ -1,7 +1,10 @@
 package project.vaadin.additionalElement;
 
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 
+@Component
 public class Joke {
     private ArrayList<String> joke = new ArrayList<>();
 

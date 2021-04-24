@@ -1,10 +1,16 @@
 package project.vaadin.additionalElement;
 
+import org.springframework.stereotype.Component;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+
+//spring custom properties
+//перенести в сервис
+@Component
 public class JokeGenerator {
     private static JokeGenerator jokeGenerator;
     private ArrayList<Joke> jokes = new ArrayList<>();

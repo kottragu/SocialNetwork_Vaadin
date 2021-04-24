@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConf
 @EnableVaadin
 @SpringBootApplication(exclude = ErrorMvcAutoConfiguration.class)
 public class VaadinApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(VaadinApplication.class, args);
     }
