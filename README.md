@@ -3,7 +3,7 @@
 * Create user by nickname
 * Find others users by nickname
 * Send messages
-* Change nickname or password (also, you can reset it)
+* Change nickname or password (also, you can reset last)
 * A few jokes on main page
 
 ## Techological stack ##
